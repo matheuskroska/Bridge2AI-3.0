@@ -1,5 +1,4 @@
 const express = require("express");
-const cors = require("cors");
 const { OpenAIApi, Configuration } = require("openai");
 require("dotenv").config();
 
@@ -14,8 +13,16 @@ const openai = new OpenAIApi(configuration);
 
 // Enable CORS for cross-origin requests
 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Define a route to handle requests to your API
 app.post("/completion", async (req, res) => {
