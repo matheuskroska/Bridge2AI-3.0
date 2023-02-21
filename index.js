@@ -1,5 +1,4 @@
 const express = require("express");
-const path = require("path");
 const fs = require("fs");
 const formidable = require("formidable");
 const { OpenAIApi, Configuration } = require("openai");
@@ -89,19 +88,20 @@ app.post("/image-edit", async (req, res) => {
         throw new Error("Image file too large");
       }
 
-      const image = await Jimp.read(imageFile.path);
-      const mask = maskFile ? await Jimp.read(maskFile.path) : null;
+      const imageBuffer = await sharp(imageFile.path).toBuffer();
+      const image = await sharp(imageBuffer);
+      const mask = maskFile ? await sharp(maskFile.path) : null;
 
-      if (image.bitmap.width !== image.bitmap.height) {
+      const { width, height } = await image.metadata();
+      if (width !== height) {
         throw new Error("Image must be square");
       }
 
-      if (
-        mask &&
-        (mask.bitmap.width !== image.bitmap.width ||
-          mask.bitmap.height !== image.bitmap.height)
-      ) {
-        throw new Error("Mask must have the same dimensions as image");
+      if (mask) {
+        const { width: maskWidth, height: maskHeight } = await mask.metadata();
+        if (maskWidth !== width || maskHeight !== height) {
+          throw new Error("Mask must have the same dimensions as image");
+        }
       }
 
       // Call the OpenAI API to edit an image
@@ -112,7 +112,7 @@ app.post("/image-edit", async (req, res) => {
           : fs.createReadStream(imageFile.path),
         prompt,
         req.query.n || 2,
-        req.query.size || `${image.bitmap.width}x${image.bitmap.height}`
+        req.query.size || `${width}x${height}`
       );
 
       // Return the edited image to the client
@@ -136,6 +136,7 @@ app.post("/image-edit", async (req, res) => {
     }
   });
 });
+
 // Start the web server
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
