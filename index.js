@@ -1,9 +1,14 @@
 const express = require("express");
+const path = require("path");
+const fs = require("fs");
+const formidable = require("formidable");
 const { OpenAIApi, Configuration } = require("openai");
 require("dotenv").config();
 
 const app = express();
 const port = 3000;
+
+const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB
 
 // Create an OpenAI API client with your API key
 const configuration = new Configuration({
@@ -44,6 +49,93 @@ app.post("/completion", async (req, res) => {
   }
 });
 
+app.post("/image", async (req, res) => {
+  const prompt = req.body.prompt;
+  try {
+    // Call the OpenAI API to generate an image
+    const response = await openai.createImage({
+      prompt: prompt,
+      n: req.query.n || 1,
+      size: req.query.size || "256x256",
+    });
+
+    // Return the generated image to the client
+    res.send(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error generating image");
+  }
+});
+
+app.post("/image-edit", async (req, res) => {
+  const form = formidable({ multiples: true });
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error parsing form data");
+    }
+
+    const imageFile = files.image;
+    const maskFile = files.mask;
+    const prompt = fields.prompt;
+
+    try {
+      if (!imageFile) {
+        throw new Error("Image file not provided");
+      }
+
+      if (imageFile.size > MAX_IMAGE_SIZE) {
+        throw new Error("Image file too large");
+      }
+
+      const image = await Jimp.read(imageFile.path);
+      const mask = maskFile ? await Jimp.read(maskFile.path) : null;
+
+      if (image.bitmap.width !== image.bitmap.height) {
+        throw new Error("Image must be square");
+      }
+
+      if (
+        mask &&
+        (mask.bitmap.width !== image.bitmap.width ||
+          mask.bitmap.height !== image.bitmap.height)
+      ) {
+        throw new Error("Mask must have the same dimensions as image");
+      }
+
+      // Call the OpenAI API to edit an image
+      const response = await openai.createImageEdit(
+        fs.createReadStream(imageFile.path),
+        maskFile
+          ? fs.createReadStream(maskFile.path)
+          : fs.createReadStream(imageFile.path),
+        prompt,
+        req.query.n || 2,
+        req.query.size || `${image.bitmap.width}x${image.bitmap.height}`
+      );
+
+      // Return the edited image to the client
+      res.contentType("image/png");
+      res.send(Buffer.from(response.data, "binary"));
+
+      // Remove temporary files created by formidable
+      fs.unlinkSync(imageFile.path);
+      if (maskFile) {
+        fs.unlinkSync(maskFile.path);
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error editing image");
+
+      // Remove temporary files created by formidable
+      fs.unlinkSync(imageFile.path);
+      if (maskFile) {
+        fs.unlinkSync(maskFile.path);
+      }
+    }
+  });
+});
 // Start the web server
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
