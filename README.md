@@ -1,4 +1,4 @@
-# kroskaGPT
+# Bridge2AI
 Essa API é uma solução para desenvolvedores que desejam utilizar a tecnologia de geração da OpenAI em seus aplicativos. Com diversos endpoints disponíveis, é possível gerar textos, imagens e editar imagens, utilizando prompts e modelos específicos.
 
 ## Como Usar
