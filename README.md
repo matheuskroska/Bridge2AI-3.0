@@ -1,10 +1,10 @@
 # kroskaGPT
 Essa API é uma solução para desenvolvedores que desejam utilizar a tecnologia de geração da OpenAI em seus aplicativos. Com diversos endpoints disponíveis, é possível gerar textos, imagens e editar imagens, utilizando prompts e modelos específicos.
 
-### Como Usar
+## Como Usar
 Para utilizar essa API, é necessário enviar uma requisição HTTP para um dos endpoints disponíveis, fornecendo as entradas necessárias para a geração de texto ou imagem. É importante ressaltar que a API realiza validações para garantir que as entradas sejam válidas antes de enviar as solicitações para a OpenAI, a fim de garantir respostas precisas e relevantes.
 
-#### Endpoints
+## Endpoints
 
 #### `completion`
 Este endpoint permite a geração de texto baseado em um texto de entrada e um prompt. É necessário fornecer um texto de entrada e um prompt como entrada na requisição HTTP. O endpoint retornará uma resposta gerada pela OpenAI baseada nessa entrada.
