@@ -30,9 +30,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// Define a route to handle requests to your API
-
-app.post("/completion", async (req, res) => {
+const authenticate = (req, res, next) => {
   const bearerHeader = req.headers["authorization"];
 
   if (typeof bearerHeader === "undefined") {
@@ -43,10 +41,17 @@ app.post("/completion", async (req, res) => {
 
   try {
     const decoded = jwt.verify(bearerToken, secret);
+    // Add the decoded token to the request object for use in the next middleware function or endpoint
+    req.decoded = decoded;
+    next();
   } catch (err) {
     return res.status(401).json({ message: "Token inválido" });
   }
+};
 
+// Define a route to handle requests to your API
+
+app.post("/completion", authenticate, async (req, res) => {
   const prompt = req.body.prompt;
   try {
     // Call the OpenAI API to generate text completion
@@ -65,7 +70,7 @@ app.post("/completion", async (req, res) => {
   }
 });
 
-app.post("/image", async (req, res) => {
+app.post("/image", authenticate, async (req, res) => {
   const prompt = req.body.prompt;
   try {
     // Call the OpenAI API to generate an image
@@ -84,7 +89,7 @@ app.post("/image", async (req, res) => {
 });
 
 // Define uma rota de API para processar solicitações POST para edição de imagens
-app.post("/image-edit", async (req, res, next) => {
+app.post("/image-edit", authenticate, async (req, res, next) => {
   // Cria um objeto 'formidable' para analisar o formulário enviado pelo cliente
   const form = formidable({ multiples: false });
 
