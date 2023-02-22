@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const formidable = require("formidable");
 const sharp = require("sharp");
@@ -30,7 +31,22 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // Define a route to handle requests to your API
+
 app.post("/completion", async (req, res) => {
+  const bearerHeader = req.headers["authorization"];
+
+  if (typeof bearerHeader === "undefined") {
+    return res.status(401).json({ message: "Token não fornecido" });
+  }
+
+  const bearerToken = bearerHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(bearerToken, secret);
+  } catch (err) {
+    return res.status(401).json({ message: "Token inválido" });
+  }
+
   const prompt = req.body.prompt;
   try {
     // Call the OpenAI API to generate text completion
@@ -113,6 +129,28 @@ app.post("/image-edit", async (req, res, next) => {
     res.send(response.data);
   });
 });
+
+const auth_username = process.env.USER;
+const auth_pass = process.env.PASSWORD;
+
+app.post("/authenticate", (req, res) => {
+  const { username, password } = req.body;
+
+  // Verificar credenciais aqui
+  if (username === auth_username && password === auth_pass) {
+    const payload = { username };
+    const token = generateToken(payload);
+
+    res.json({ message: "Autenticação realizada com sucesso", token });
+  } else {
+    res.status(401).json({ message: "Credenciais inválidas" });
+  }
+});
+
+const secret = "secret_key";
+const generateToken = (payload) => {
+  return jwt.sign(payload, "secret_key", { expiresIn: "1h" });
+};
 
 // Start the web server
 app.listen(port, () => {
