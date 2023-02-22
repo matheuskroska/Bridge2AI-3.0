@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const formidable = require("formidable");
+const sharp = require("sharp");
 const { OpenAIApi, Configuration } = require("openai");
 require("dotenv").config();
 
@@ -66,74 +67,50 @@ app.post("/image", async (req, res) => {
   }
 });
 
-app.post("/image-edit", async (req, res) => {
-  const form = formidable({ multiples: true });
+// Define uma rota de API para processar solicitações POST para edição de imagens
+app.post("/image-edit", async (req, res, next) => {
+  // Cria um objeto 'formidable' para analisar o formulário enviado pelo cliente
+  const form = formidable({ multiples: false });
 
+  // Analisa a solicitação HTTP e extrai os dados do formulário
   form.parse(req, async (err, fields, files) => {
+    // Verifica se ocorreu um erro ao analisar o formulário
     if (err) {
-      console.error(err);
-      return res.status(500).send("Error parsing form data");
+      // Repassa o erro para o próximo manipulador de erro
+      next(err);
+      return;
     }
 
-    const imageFile = files.image;
-    const maskFile = files.mask;
-    const prompt = fields.prompt;
+    // Chama a função 'validateImage' para verificar se o arquivo de imagem enviado é válido
+    const imageError = await validateImage(files.inputImage);
+    // Chama a função 'validateMask' para verificar se o arquivo de máscara de imagem (se fornecido) é válido
+    const maskError = await validateMask(files.mask, files.inputImage);
 
-    try {
-      if (!imageFile) {
-        throw new Error("Image file not provided");
-      }
-
-      if (imageFile.size > MAX_IMAGE_SIZE) {
-        throw new Error("Image file too large");
-      }
-
-      const imageBuffer = await sharp(imageFile.path).toBuffer();
-      const image = await sharp(imageBuffer);
-      const mask = maskFile ? await sharp(maskFile.path) : null;
-
-      const { width, height } = await image.metadata();
-      if (width !== height) {
-        throw new Error("Image must be square");
-      }
-
-      if (mask) {
-        const { width: maskWidth, height: maskHeight } = await mask.metadata();
-        if (maskWidth !== width || maskHeight !== height) {
-          throw new Error("Mask must have the same dimensions as image");
-        }
-      }
-
-      // Call the OpenAI API to edit an image
-      const response = await openai.createImageEdit(
-        fs.createReadStream(imageFile.path),
-        maskFile
-          ? fs.createReadStream(maskFile.path)
-          : fs.createReadStream(imageFile.path),
-        prompt,
-        req.query.n || 2,
-        req.query.size || `${width}x${height}`
-      );
-
-      // Return the edited image to the client
-      res.contentType("image/png");
-      res.send(Buffer.from(response.data, "binary"));
-
-      // Remove temporary files created by formidable
-      fs.unlinkSync(imageFile.path);
-      if (maskFile) {
-        fs.unlinkSync(maskFile.path);
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Error editing image");
-
-      // Remove temporary files created by formidable
-      fs.unlinkSync(imageFile.path);
-      if (maskFile) {
-        fs.unlinkSync(maskFile.path);
-      }
+    // Verifica se houve um erro na validação do arquivo de imagem
+    if (imageError) {
+      // Envia uma resposta de erro ao cliente com um código de status 400 (Solicitação incorreta)
+      res.status(400).send(imageError);
+      return;
     }
+
+    // Verifica se houve um erro na validação do arquivo de máscara de imagem (se fornecido)
+    if (maskError) {
+      // Envia uma resposta de erro ao cliente com um código de status 400 (Solicitação incorreta)
+      res.status(400).send(maskError);
+      return;
+    }
+
+    // Chama a função 'createImageEdit' do módulo 'openai' para gerar uma imagem editada com base nos dados fornecidos pelo cliente
+    const response = await openai.createImageEdit(
+      fs.createReadStream(files.inputImage.filepath),
+      fs.createReadStream(files.mask.filepath),
+      fields.prompt,
+      fields.n || 1,
+      fields.size || "256x256"
+    );
+
+    // Envia a imagem editada como resposta ao cliente
+    res.send(response.data);
   });
 });
 
@@ -141,3 +118,68 @@ app.post("/image-edit", async (req, res) => {
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
+
+const validateImage = (image) => {
+  if (!image) {
+    return "Image is required";
+  }
+
+  // Check if the file is a PNG
+  if (!image.mimetype || image.mimetype !== "image/png") {
+    return "Image must be a PNG file";
+  }
+
+  // Check the file size
+  if (image.size > 4000000) {
+    return "Image must be less than 4MB";
+  }
+
+  const img = sharp(image.filepath);
+  return img.metadata().then((metadata) => {
+    if (metadata.width !== metadata.height) {
+      return "Image must be square";
+    }
+    return null;
+  });
+};
+
+const validateMask = async (mask, image) => {
+  if (!mask) {
+    if (image.filepath) {
+      const img = sharp(image.filepath);
+      return img.metadata().then((metadata) => {
+        if (metadata.format === "png" && metadata.alpha === false) {
+          return "If mask is not provided, image must have transparency, which will be used as the mask";
+        }
+        return null;
+      });
+    } else {
+      return "Mask is required";
+    }
+  }
+
+  // Check if the file is a PNG
+  if (!mask.mimetype || mask.mimetype !== "image/png") {
+    return "Mask must be a PNG file";
+  }
+
+  // Check the file size
+  if (mask.size > 4000000) {
+    return "Mask must be less than 4MB";
+  }
+
+  // Check if the mask has the same dimensions as the image
+  const img = sharp(image.filepath);
+  const maskImg = sharp(mask.filepath);
+  return Promise.all([img.metadata(), maskImg.metadata()]).then(
+    ([imgMetadata, maskMetadata]) => {
+      if (
+        imgMetadata.width !== maskMetadata.width ||
+        imgMetadata.height !== maskMetadata.height
+      ) {
+        return "Mask must have the same dimensions as the image";
+      }
+      return null;
+    }
+  );
+};
