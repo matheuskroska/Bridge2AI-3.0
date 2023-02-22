@@ -1,10 +1,10 @@
 # Bridge2AI 🚧🚧
-This API is a solution for developers who want to use OpenAI's text and image generation technology in their applications. With multiple endpoints available, it is possible to generate text, images, and edit images using specific prompts and models.
+This API is a solution for developers who want to use [OpenAI's](https://platform.openai.com/overview) text and image generation technology in their applications. With multiple endpoints available, it is possible to generate text, images, and edit images using specific prompts and models.
 
 ## How to use
 To use this API, it is necessary to send an HTTP request to one of the available endpoints, providing the necessary inputs for text or image generation. It is important to note that the API performs validations to ensure that the inputs are valid before sending requests to OpenAI to ensure accurate and relevant responses.
 
-Please include that to use the API, the user needs to add the API key generated on the OpenAI website, and the billing is based on usage, but it is very affordable compared to the rate set by the "plus" of ChatGPT.
+Please include that to use the API, the user needs to add the API key generated on the OpenAI website, and the billing is based on usage, but it is very affordable compared to the rate set by the "plus" of [ChatGPT](https://chat.openai.com/chat).
 
 ## Endpoints
 
