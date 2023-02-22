@@ -22,6 +22,31 @@ This endpoint allows for image editing based on input images, a mask, and a prom
 
 This API is a solution for developers who want to use OpenAI's text and image generation technology in their applications. With multiple endpoints available, it is possible to generate text, images, and edit images using specific prompts and models.
 
+Clone the project
+
+```bash
+  git clone https://github.com/matheuskroska/Bridge2AI.git
+```
+
+Go to the project directory
+
+```bash
+  cd my-project
+```
+
+Install dependencies
+
+```bash
+  npm install || yarn
+```
+
+Start
+
+```bash
+  node index
+```
+
+
 
 ## API Documentation
 
