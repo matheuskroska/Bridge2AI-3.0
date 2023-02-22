@@ -4,6 +4,8 @@ This API is a solution for developers who want to use OpenAI's text and image ge
 ## How to use
 To use this API, it is necessary to send an HTTP request to one of the available endpoints, providing the necessary inputs for text or image generation. It is important to note that the API performs validations to ensure that the inputs are valid before sending requests to OpenAI to ensure accurate and relevant responses.
 
+Please include that to use the API, the user needs to add the API key generated on the OpenAI website, and the billing is based on usage, but it is very affordable compared to the rate set by the "plus" of ChatGPT.
+
 ## Endpoints
 
 #### `completion`
