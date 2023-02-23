@@ -1,13 +1,11 @@
-const express = require("express");
 const generateToken = require("../utils/generateToken");
 const auth_username = process.env.USER;
 const auth_pass = process.env.PASSWORD;
-const router = express.Router();
+const router = require("../config").router;
 
 router.post("/authenticate", (req, res) => {
   const { username, password } = req.body;
 
-  // Verificar credenciais aqui
   if (username === auth_username && password === auth_pass) {
     const payload = { username };
     const token = generateToken(payload);
