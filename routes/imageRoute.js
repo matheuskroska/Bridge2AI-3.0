@@ -1,13 +1,7 @@
-const { OpenAIApi, Configuration } = require("openai");
 const authenticate = require("../middleware/authenticate");
-const dotenv = require("dotenv").config();
 const express = require("express");
+const openai = require("../config");
 const router = express.Router();
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 router.post("/image", authenticate, async (req, res) => {
   const prompt = req.body.prompt;

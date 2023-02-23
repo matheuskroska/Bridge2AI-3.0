@@ -1,24 +1,11 @@
-const express = require("express");
 const fs = require("fs");
 const formidable = require("formidable");
-const { OpenAIApi, Configuration } = require("openai");
-const dotenv = require("dotenv").config();
 const authenticate = require("../middleware/authenticate");
-const generateToken = require("../utils/generateToken");
 const validateImage = require("../utils/validateImage");
 const validateMask = require("../utils/validateMask");
-const app = express();
-const port = 3000;
-const auth_username = process.env.USER;
-const auth_pass = process.env.PASSWORD;
-const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB
+const express = require("express");
 const router = express.Router();
-
-// Create an OpenAI API client with your API key
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+const openai = require("../config");
 
 router.post("/image-edit", authenticate, async (req, res, next) => {
   // Cria um objeto 'formidable' para analisar o formulário enviado pelo cliente
