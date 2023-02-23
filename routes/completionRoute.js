@@ -1,7 +1,6 @@
-const express = require("express");
 const authenticate = require("../middleware/authenticate");
-const router = express.Router();
-const openai = require("../config");
+const openai = require("../config").openai;
+const router = require("../config").router;
 
 router.post("/completion", authenticate, async (req, res) => {
   const prompt = req.body.prompt;

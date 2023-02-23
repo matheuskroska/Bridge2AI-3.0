@@ -1,7 +1,6 @@
 const authenticate = require("../middleware/authenticate");
-const express = require("express");
-const openai = require("../config");
-const router = express.Router();
+const openai = require("../config").openai;
+const router = require("../config").router;
 
 router.post("/image", authenticate, async (req, res) => {
   const prompt = req.body.prompt;

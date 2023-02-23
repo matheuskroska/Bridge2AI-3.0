@@ -3,9 +3,8 @@ const formidable = require("formidable");
 const authenticate = require("../middleware/authenticate");
 const validateImage = require("../utils/validateImage");
 const validateMask = require("../utils/validateMask");
-const express = require("express");
-const router = express.Router();
-const openai = require("../config");
+const openai = require("../config").openai;
+const router = require("../config").router;
 
 router.post("/image-edit", authenticate, async (req, res, next) => {
   const form = formidable({ multiples: false });
