@@ -6,7 +6,6 @@ const openai = require("../config");
 router.post("/completion", authenticate, async (req, res) => {
   const prompt = req.body.prompt;
   try {
-    // Call the OpenAI API to generate text completion
     const response = await openai.createCompletion({
       model: "text-davinci-003",
       prompt: prompt,
@@ -14,7 +13,6 @@ router.post("/completion", authenticate, async (req, res) => {
       temperature: req.query.temperature || 0,
     });
 
-    // Return the generated text to the client
     res.send(response.data.choices[0].text);
   } catch (error) {
     console.error(error);

@@ -7,7 +7,6 @@ const router = express.Router();
 router.post("/authenticate", (req, res) => {
   const { username, password } = req.body;
 
-  // Verificar credenciais aqui
   if (username === auth_username && password === auth_pass) {
     const payload = { username };
     const token = generateToken(payload);
