@@ -56,6 +56,28 @@ Start
 | `max_tokens`      | `integer` | 	The maximum number of tokens to generate. Defaults to 50.|
 | `temperature`      | `float` |A number from 0 to 1 that determines the 'creativity level' of the generated text. The closer to 0, the more conservative the text will be. The closer to 1, the more creative and unpredictable the text will be. Default: 0.|
 
+
+```http
+  POST /image
+```
+
+#### Returns an image based on prompt
+
+### Request Body
+
+| Parameter   | Type       | Description                                   |
+| :---------- | :--------- | :------------------------------------------ |
+| `prompt`      | `string` | 	A string representing the prompt to generate image|
+
+
+### Query Parameters
+
+| Parameter   | Type       | Description                                   |
+| :---------- | :--------- | :------------------------------------------ |
+| `n`      | `integer` | 	 Number of generated outputs. Defaults to 1.|
+| `size`      | `string` | The size of the output image. It must be in the format "width x height". Defaults to "256x256".|
+
+
 ```http
   POST /image-edit
 ```
