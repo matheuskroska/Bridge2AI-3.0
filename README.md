@@ -24,10 +24,19 @@ Install dependencies
   npm install || yarn
 ```
 
+Set Environment variables
+
+##### To run this project, you will need to add the following environment variables to your .env file
+
+`OPENAI_API_KEY`
+`USER`
+`PASSWORD`
+`SECRET_KEY`
+
 Start
 
 ```bash
-  node index
+  node app
 ```
 
 
@@ -94,8 +103,21 @@ Start
 | `size`      | `string` | The size of the output image. It must be in the format "width x height". Defaults to "256x256".|
 
 
+```http
+  POST /authenticate
+```
+#### This endpoint is used to authenticate users by checking their provided username and password against stored credentials. The endpoint expects a POST request with a JSON payload containing the username and password.
 
+If the username and password match the stored credentials, the server generates a JSON Web Token (JWT) for the user and returns it in the response.
 
+This endpoint allows users to log in to the application by verifying their identity with a username and password.
+
+### Request Body
+
+| Parameter   | Type       | Description                                   |
+| :---------- | :--------- | :------------------------------------------ |
+| `username`      | `string` | 	user credential |
+| `password`      | `string` | 	password credential|
 
 
 ### Conclusion
