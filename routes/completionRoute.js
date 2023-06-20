@@ -2,14 +2,15 @@ const authenticate = require("../middleware/authenticate");
 const openai = require("../config").openai;
 const router = require("../config").router;
 
-router.post("/completion", authenticate, async (req, res) => {
+router.post("/completion", async (req, res) => {
   const prompt = req.body.prompt;
+  console.log(req.query.max_tokens);
   try {
     const response = await openai.createCompletion({
       model: "text-davinci-003",
       prompt: prompt,
-      max_tokens: req.query.max_tokens || 50,
-      temperature: req.query.temperature || 0,
+      max_tokens: parseInt(req.query.max_tokens) || 1024,
+      temperature: parseInt(req.query.temperature) || 0,
     });
 
     res.send(response.data.choices[0].text);
